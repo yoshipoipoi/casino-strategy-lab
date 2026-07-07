@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casino Strategy Lab — Strategy Tools for Casino Games</title>
+<meta name="description" content="Strategy calculators and training apps for Baccarat, Russian Poker, Blackjack and other casino table games, plus in-depth strategy articles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --felt: #0E3A2D;
+    --felt-deep: #092A20;
+    --card: #F6F2E6;
+    --card-shade: #EAE3D0;
+    --ink: #1E1C17;
+    --suit-red: #B3372E;
+    --brass: #C9A24B;
+    --muted: #8FA79B;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    background: var(--felt);
+    background-image: radial-gradient(ellipse 120% 80% at 50% -10%, #14503E 0%, var(--felt) 55%, var(--felt-deep) 100%);
+    color: var(--card);
+    font-family: "Inter", "Helvetica Neue", sans-serif;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  .serif { font-family: "DM Serif Display", serif; font-weight: 400; }
+  .mono  { font-family: "IBM Plex Mono", monospace; }
+
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--brass);
+    outline-offset: 3px;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ─────────────────────────── */
+  header {
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(246,242,230,0.12);
+  }
+  .header-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .brand {
+    font-size: 22px; letter-spacing: 0.04em; text-decoration: none;
+  }
+  .brand .suit { color: var(--suit-red); margin-right: 6px; }
+  nav { display: flex; gap: 28px; }
+  nav a {
+    text-decoration: none; font-size: 14px; letter-spacing: 0.08em;
+    color: var(--muted); transition: color .2s;
+  }
+  nav a:hover { color: var(--card); }
+
+  /* ── Hero ───────────────────────────── */
+  .hero { padding: 96px 0 72px; }
+  .hero .eyebrow {
+    font-size: 13px; letter-spacing: 0.28em; color: var(--brass);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    line-height: 1.15; letter-spacing: 0.01em;
+    max-width: 15em;
+  }
+  .hero p.sub {
+    margin-top: 28px; max-width: 40em; color: rgba(246,242,230,0.75); font-size: 17px;
+  }
+  .hero .odds-line {
+    margin-top: 40px; font-size: 13px; color: var(--muted); letter-spacing: 0.06em;
+  }
+  .hero .odds-line b { color: var(--brass); font-weight: 500; }
+
+  /* ── Section headings ───────────────── */
+  section { padding: 64px 0; }
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 12px; }
+  .sec-head h2 { font-size: 28px; letter-spacing: 0.02em; font-weight: 400; }
+  .sec-head .rule { flex: 1; height: 1px; background: rgba(246,242,230,0.15); }
+  .sec-lead { color: rgba(246,242,230,0.65); font-size: 15px; margin-bottom: 40px; max-width: 42em; }
+
+  /* ── Game groups ────────────────────── */
+  .game-group { margin-bottom: 48px; }
+  .game-label {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; letter-spacing: 0.2em; color: var(--muted);
+    margin-bottom: 18px;
+  }
+  .game-label .suit { font-size: 17px; }
+  .suit.red { color: var(--suit-red); }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 20px;
+  }
+
+  /* ── App card = playing card ────────── */
+  .app-card {
+    position: relative;
+    background: linear-gradient(168deg, var(--card) 0%, var(--card-shade) 100%);
+    color: var(--ink);
+    border-radius: 12px;
+    padding: 26px 24px 22px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.35), 0 10px 26px rgba(0,0,0,0.28);
+    display: flex; flex-direction: column;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .app-card:hover {
+    transform: translateY(-4px) rotate(-0.4deg);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.35), 0 18px 36px rgba(0,0,0,0.36);
+  }
+  .app-card .corner {
+    position: absolute; top: 14px; right: 16px;
+    font-size: 15px; line-height: 1.1; text-align: center;
+    color: rgba(30,28,23,0.55);
+  }
+  .app-card .corner.red { color: rgba(179,55,46,0.75); }
+  .app-card h3 {
+    font-size: 22px; line-height: 1.25; letter-spacing: 0.01em;
+    padding-right: 30px; font-weight: 400;
+  }
+  .app-card .note {
+    font-size: 12px; letter-spacing: 0.08em; color: #7A7263; margin-top: 4px;
+  }
+  .app-card p.desc {
+    font-size: 14px; line-height: 1.7; color: #4A463C;
+    margin-top: 12px; flex: 1;
+  }
+  .app-card .foot {
+    margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .btn {
+    display: inline-block; text-decoration: none;
+    font-size: 13.5px; font-weight: 700; letter-spacing: 0.05em;
+    padding: 9px 18px; border-radius: 6px;
+    background: var(--felt); color: var(--card);
+    transition: background .2s;
+  }
+  .btn:hover { background: #145341; }
+  .btn.disabled {
+    background: transparent; color: #8A8271;
+    border: 1px solid #C9C1AC; cursor: default; pointer-events: none;
+  }
+  .status {
+    font-size: 11px; letter-spacing: 0.16em; color: #8A8271; text-transform: uppercase;
+  }
+  .status.live { color: #146A4C; }
+
+  /* ── Articles ───────────────────────── */
+  .articles-sec { background: rgba(0,0,0,0.18); }
+  .article-list { border-top: 1px solid rgba(246,242,230,0.14); }
+  .article-row {
+    display: grid; grid-template-columns: 170px 1fr auto;
+    gap: 20px; align-items: baseline;
+    padding: 22px 4px;
+    border-bottom: 1px solid rgba(246,242,230,0.14);
+    text-decoration: none;
+    transition: background .15s;
+  }
+  .article-row:hover { background: rgba(246,242,230,0.05); }
+  .article-row .tag {
+    font-size: 12px; letter-spacing: 0.14em; color: var(--brass);
+  }
+  .article-row .title { font-size: 17px; font-weight: 500; }
+  .article-row .arrow { color: var(--muted); font-size: 14px; }
+  @media (max-width: 640px) {
+    .article-row { grid-template-columns: 1fr auto; }
+    .article-row .tag { grid-column: 1 / -1; }
+  }
+  .articles-cta { margin-top: 36px; }
+  .btn-outline {
+    display: inline-block; text-decoration: none;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.06em;
+    padding: 12px 26px; border-radius: 6px;
+    border: 1px solid var(--brass); color: var(--brass);
+    transition: background .2s, color .2s;
+  }
+  .btn-outline:hover { background: var(--brass); color: var(--felt-deep); }
+
+  /* ── About ──────────────────────────── */
+  .about-grid {
+    display: grid; grid-template-columns: 1.6fr 1fr; gap: 48px;
+    align-items: start; margin-top: 28px;
+  }
+  @media (max-width: 720px) {
+    .about-grid { grid-template-columns: 1fr; gap: 32px; }
+  }
+  .about-bio p {
+    color: rgba(246,242,230,0.8); font-size: 16px; max-width: 36em;
+  }
+  .about-bio p + p { margin-top: 16px; }
+  .about-links { display: flex; flex-direction: column; gap: 14px; }
+  .contact-link {
+    display: block; text-decoration: none;
+    border: 1px solid rgba(246,242,230,0.18); border-radius: 10px;
+    padding: 16px 20px;
+    transition: border-color .2s, background .2s;
+  }
+  .contact-link:hover {
+    border-color: var(--brass); background: rgba(201,162,75,0.06);
+  }
+  .contact-label {
+    display: block; font-size: 11px; letter-spacing: 0.2em;
+    color: var(--brass); margin-bottom: 4px;
+  }
+  .contact-value { font-size: 15px; color: var(--card); }
+
+  /* ── Footer ─────────────────────────── */
+  footer {
+    padding: 48px 0 56px;
+    border-top: 1px solid rgba(246,242,230,0.12);
+    color: var(--muted); font-size: 13px;
+  }
+  .footer-row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  footer a { color: var(--muted); }
+  .disclaimer { margin-top: 14px; font-size: 12px; line-height: 1.8; max-width: 52em; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap header-row">
+    <a class="brand serif" href="#"><span class="suit">♠</span>Casino Strategy Lab</a>
+    <nav>
+      <a href="#apps">Apps</a>
+      <a href="#articles">Articles</a>
+      <a href="#about">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="hero">
+      <div class="eyebrow mono">PROBABILITY / STRATEGY / TOOLS</div>
+      <h1 class="serif">Play the numbers,<br>not your gut.</h1>
+      <p class="sub">
+        Strategy calculators and training apps for Baccarat, Russian Poker, Blackjack,
+        and casino table poker — built on the math of each game. Available for Android,
+        with in-depth strategy articles to match.
+      </p>
+      <p class="odds-line mono">house edge is not fixed — <b>information changes everything.</b></p>
+    </div>
+  </div>
+
+  <section id="apps">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="serif">Apps</h2>
+        <div class="rule"></div>
+      </div>
+      <p class="sec-lead">Strategy calculators and training tools, organized by game. Rolling out on Android.</p>
+
+      <!-- ── Baccarat ── -->
+      <div class="game-group">
+        <div class="game-label"><span class="suit red">♥</span>BACCARAT</div>
+        <div class="card-grid">
+          <div class="app-card">
+            <div class="corner red">♥<br>B</div>
+            <h3 class="serif">Pair Bet Calculator</h3>
+            <p class="desc">Instantly compute the expected value of pair bets from known card information. See exactly when the edge tips in your favor.</p>
+            <div class="foot">
+              <!-- When live: set href to the Google Play URL, remove the "disabled" class, change status to "Live" with class "status live" -->
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="corner red">♥<br>B</div>
+            <h3 class="serif">Point Bet Calculator</h3>
+            <p class="desc">Expected-value calculator for point bets. Turns the current count into a clear bet / no-bet decision.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Russian Poker ── -->
+      <div class="game-group">
+        <div class="game-label"><span class="suit">♠</span>RUSSIAN POKER</div>
+        <div class="card-grid">
+          <div class="app-card">
+            <div class="corner">♠<br>R</div>
+            <h3 class="serif">Russian Poker Training</h3>
+            <p class="desc">Drill draw, buy-a-card, and insurance decisions until the correct play becomes automatic — at real table speed.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+          <div class="app-card">
+            <div class="corner">♠<br>R</div>
+            <h3 class="serif">Russian Poker Calculator</h3>
+            <p class="desc">Enter any hand and dealer upcard to get the optimal action and its expected value.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Blackjack ── -->
+      <div class="game-group">
+        <div class="game-label"><span class="suit">♣</span>BLACKJACK</div>
+        <div class="card-grid">
+          <div class="app-card">
+            <div class="corner">♣<br>BJ</div>
+            <h3 class="serif">BlackJack Simulator</h3>
+            <p class="desc">Configure rules, strategy, and bet spread, then simulate long-run results. Test a strategy's real strength before you play it.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Chinese Poker ── -->
+      <div class="game-group">
+        <div class="game-label"><span class="suit red">♦</span>CHINESE POKER</div>
+        <div class="card-grid">
+          <div class="app-card">
+            <div class="corner red">♦<br>C</div>
+            <h3 class="serif">Fantasy Advisor</h3>
+            <p class="desc">Optimal Fantasyland placement for Open-Face Chinese. Finds the best arrangement of 13 to 17 cards by calculation, not intuition.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Three Card Poker ── -->
+      <div class="game-group">
+        <div class="game-label"><span class="suit">♠</span>THREE CARD POKER</div>
+        <div class="card-grid">
+          <div class="app-card">
+            <div class="corner">♠<br>3</div>
+            <h3 class="serif">Three Card Poker Calculator</h3>
+            <p class="note mono">HOLE CARDING</p>
+            <p class="desc">Optimal strategy and expected value when one dealer card is known. Puts a precise number on the value of information.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Texas Holdem Bonus ── -->
+      <div class="game-group">
+        <div class="game-label"><span class="suit red">♥</span>TEXAS HOLDEM BONUS</div>
+        <div class="card-grid">
+          <div class="app-card">
+            <div class="corner red">♥<br>T</div>
+            <h3 class="serif">Texas Holdem Bonus Calculator</h3>
+            <p class="note mono">HOLE CARDING</p>
+            <p class="desc">Optimal actions with a known dealer hole card, covering flop, turn, and river decisions.</p>
+            <div class="foot">
+              <a class="btn disabled" href="#">Google Play</a>
+              <span class="status">Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="articles" class="articles-sec">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="serif">Premium Articles</h2>
+        <div class="rule"></div>
+      </div>
+      <p class="sec-lead">The strategy and math behind the apps, explained from a practical, at-the-table perspective.</p>
+
+      <div class="article-list">
+        <!-- Replace each href with the article URL -->
+        <a class="article-row" href="#">
+          <span class="tag mono">BACCARAT</span>
+          <span class="title">One Known Card — When a Single Card Turns Into an Edge</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="article-row" href="#">
+          <span class="tag mono">BACCARAT</span>
+          <span class="title">Pair Bet — The EV Structure and How to Play It</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="article-row" href="#">
+          <span class="tag mono">3 CARD POKER</span>
+          <span class="title">Three Card Poker — A Hole Carding Strategy</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="article-row" href="#">
+          <span class="tag mono">RUSSIAN POKER</span>
+          <span class="title">Russian Poker — A Simplified Strategy</span>
+          <span class="arrow">→</span>
+        </a>
+        <a class="article-row" href="#">
+          <span class="tag mono">BLACKJACK</span>
+          <span class="title">Blackjack — Notes on Special Skills</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+
+      <div class="articles-cta">
+        <!-- Replace with your Substack URL -->
+        <a class="btn-outline" href="#">Read on Substack →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="serif">About</h2>
+        <div class="rule"></div>
+      </div>
+      <div class="about-grid">
+        <div class="about-bio">
+          <!-- Edit this bio to match how you want to present yourself -->
+          <p>
+            I'm an independent developer building strategy tools for casino table games.
+            My background is in probability, game theory, and a lot of hours at real tables —
+            the apps and articles here come from turning that experience into working math.
+          </p>
+          <p>
+            Everything is developed solo: the analysis, the strategies, and the code.
+            If a tool is listed here, it's because I use it myself.
+          </p>
+        </div>
+        <div class="about-links">
+          <!-- Replace with your contact email -->
+          <a class="contact-link" href="mailto:contact@example.com">
+            <span class="contact-label mono">CONTACT</span>
+            <span class="contact-value">contact@example.com</span>
+          </a>
+          <!-- Replace with your YouTube channel URL -->
+          <a class="contact-link" href="https://www.youtube.com/@yourchannel" target="_blank" rel="noopener">
+            <span class="contact-label mono">YOUTUBE</span>
+            <span class="contact-value">Watch strategy videos →</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span class="serif"><span class="suit" style="color:var(--suit-red)">♠</span> Casino Strategy Lab</span>
+      <span>
+        <!-- Replace with your email and YouTube URL -->
+        <a href="mailto:contact@example.com">contact@example.com</a>
+        &nbsp;·&nbsp;
+        <a href="https://www.youtube.com/@yourchannel" target="_blank" rel="noopener">YouTube</a>
+        &nbsp;·&nbsp;
+        © 2026 Casino Strategy Lab
+      </span>
+    </div>
+    <p class="disclaimer">
+      The apps and articles on this site are for informational and educational purposes,
+      covering the mathematics and strategy of casino games. Nothing here is an encouragement
+      to gamble. Check the laws of your jurisdiction and play at your own risk.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
